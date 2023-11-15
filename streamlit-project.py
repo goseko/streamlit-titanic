@@ -12,30 +12,31 @@ from sklearn.metrics import accuracy_score
 
 def get_model(path):
     df = pd.read_csv(path)
-    df.drop(["Cabin" axis=1, inplace=True)
+    df.drop(["Cabin"],axis=1, inplace=True)
 
-    df["Fare"].fillna(value = dfSurvivals["fare"].mean(), inplace=True)
-    df["Embarked"].fillna(dfSurvivals["embarked"].value_counts().idxmax(), inplace=True)
-    df["Age"].fillna(value = dfSurvivals["age"].mean(), inplace=True)
+    df["Fare"].fillna(value = df["Fare"].mean(), inplace=True)
+    df["Embarked"].fillna(df["Embarked"].value_counts().idxmax(), inplace=True)
+    df["Age"].fillna(value = df["Age"].mean(), inplace=True)
 
     
 
     labelencoder_X = LabelEncoder()
 
-    df["Name"] = labelencoder_X.fit_transform(dfSurvivals["name"])
-    df["Embarked"] = labelencoder_X.fit_transform(dfSurvivals["embarked"])
-    df["Ticket"] = dfSurvivals["ticket"].astype(str)
-    df["Ticket"] = labelencoder_X.fit_transform(dfSurvivals["ticket"])
+    df["Name"] = labelencoder_X.fit_transform(df["Name"])
+    df["Embarked"] = labelencoder_X.fit_transform(df["Embarked"])
+    df["Ticket"] = df["Ticket"].astype(str)
+    df["Ticket"] = labelencoder_X.fit_transform(df["Ticket"])
 
 
 
-    result = OneHotEncoder().fit_transform(dfSurvivals["Sex"].values.reshape(-1, 1)).toarray()
-    dfSurvivals[["female", "male"]] = pd.DataFrame(result, index = dfSurvivals.index)
-    dfSurvivals.drop(["Sex"], axis=1, inplace=True)
+    result = OneHotEncoder().fit_transform(df["Sex"].values.reshape(-1, 1)).toarray()
+    df[["female", "male"]] = pd.DataFrame(result, index = df.index)
+    df.drop(["Sex"], axis=1, inplace=True)
 
 
-    X = dfSurvivals.drop("survived", axis=1)
-    y = dfSurvivals["survived"]
+    X = df.drop(columns=["Survived","Name","PassengerId","Ticket"], axis=1)
+    print(X.columns)
+    y = df["Survived"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
@@ -48,7 +49,7 @@ def get_model(path):
 def main():
     """ main() contains all UI structure elements; getting and storing user data can be done within it"""
     st.title("Titanic Classification")                                                                              ## Title/main heading
-    st.image(r"the-titanic.webp", caption="Sinking of 'RMS Titanic' : 15 April 1912 in North Atlantic Ocean",use_column_width=True) ## image import
+    # st.image(r"the-titanic.webp", caption="Sinking of 'RMS Titanic' : 15 April 1912 in North Atlantic Ocean",use_column_width=True) ## image import
     st.write("""## Would you have survived From Titanic Disaster?""")                                                    ## Sub heading
 
 
@@ -62,31 +63,32 @@ def main():
 
     Parch = st.selectbox("How many Parents or children are travelling with you?", [0, 1, 2, 3, 4, 5, 6, 7, 8]) # Select box
 
+    male,female=0,0
     sex = st.selectbox("Select Gender:", ["Male","Female"])                         # select box for gender[Male|Female]
     if (sex == "Male"):                                                             # selected gender changes to [Male:0 Female:1]
-        Sex=0
+        male=1
     else:
-        Sex=1
+        female=1
 
     Pclass= st.selectbox("Select Passenger-Class:",[1,2,3])                        # Select box for passenger-class
 
     boarded_location = st.selectbox("Boarded Location:", ["Southampton","Cherbourg","Queenstown"]) ## Select Box for Boarding Location
-    Embarked_C,Embarked_Q,Embarked_S=0,0,0                     # initial values are 0
+    Embarked_=0                  # initial values are 0
     # As we encoded these using one-hot-encode im ml model; so if 'Q' selected value is C=0,Q=1;S=0 , if 'S' selected value is C=0,Q=0;S=1 likewise
     if boarded_location == "Queenstown":
-        Embarked_Q=1
+        Embarked=1
     elif boarded_location == "Southampton":
-        Embarked_S=1
+        Embarked=2
     else:
-        Embarked_C=1
+        Embarked=0
 
    
-    data={"Age":age,"Fare":fare,"SibSp":SibSp,"Parch":Parch,"Sex":Sex,"Pclass":Pclass,"Embarked_Q":Embarked_Q,"Embarked_S":Embarked_S,"Embarked_C":Embarked_C}
+    data={"Pclass":Pclass,"Age":age,"SibSp":SibSp,"Parch":Parch,"Fare":fare,"Embarked":Embarked,"female":female,"male":male}
 
     df=pd.DataFrame(data,index=[0])     
-    return df
+    return df,model
 
-data=main()                         
+data,model=main()                         
 
 ## Prediction:
 if st.button("Predict"):                                                              
@@ -96,7 +98,7 @@ if st.button("Predict"):
 
     if result[0] == 1:
         st.write("***Congratulation!!!...*** **You probably would have made it!**")
-        st.image(r"alive.jfif")
+        # st.image(r"alive.jfif")
         st.write("**Survival Probability Chances :** 'NO': {}%  'YES': {}% ".format(round((proba[0,0])*100,2),round((proba[0,1])*100,2)))
     else:
         st.write("***Better Luck Next time!!!...*** **you're probably Ended up like 'Jack'**")

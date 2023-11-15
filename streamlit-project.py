@@ -102,5 +102,5 @@ if st.button("Predict"):
         st.write("**Survival Probability Chances :** 'NO': {}%  'YES': {}% ".format(round((proba[0,0])*100,2),round((proba[0,1])*100,2)))
     else:
         st.write("***Better Luck Next time!!!...*** **you're probably Ended up like 'Jack'**")
-        st.image(r"restinpeace.jfif")
+        # st.image(r"restinpeace.jfif")
         st.write("**Survival Probability Chances :** 'NO': {}%  'YES': {}% ".format(round((proba[0,0])*100,2),round((proba[0,1])*100,2)))
